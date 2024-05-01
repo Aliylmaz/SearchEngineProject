@@ -11,26 +11,29 @@ public class BinarySearchTree {
     }
 
     // Kelimeyi ikili arama ağacına ekleme
-    public void insert(String word) {
-        root = insertRec(root, word);
+    public void insert(String word, String fileName) {
+        root = insertRec(root, word, fileName);
     }
 
     // Yardımcı metot: Kelimeyi ikili arama ağacına ekleme
-    private Node insertRec(Node root, String word) {
+    private Node insertRec(Node root, String word, String fileName) {
         if (root == null) {
-            root = new Node(word);
+            root = new Node(word, fileName);
             return root;
         }
 
         // Kelimeyi alfabetik sıraya göre ekle
         int compareResult = word.compareTo(root.word);
         if (compareResult < 0) {
-            root.left = insertRec(root.left, word);
+            root.left = insertRec(root.left, word, fileName);
         } else if (compareResult > 0) {
-            root.right = insertRec(root.right, word);
+            root.right = insertRec(root.right, word, fileName);
         } else {
             // Eğer kelime zaten varsa, frekansı arttır
             root.frequency++;
+            if (!root.list.contains(fileName)) {
+                root.list.add(fileName);
+            }
         }
 
         return root;
@@ -105,6 +108,18 @@ public class BinarySearchTree {
             inOrderTraversalRec(root.right, result);
         }
     }
+    public void print() {
+        printRec(root);
+    }
+    private void printRec(Node root) {
+        if (root != null) {
+            printRec(root.left);
+            System.out.println(root.word + ": " + root.frequency);
+            printRec(root.right);
+        }
+    }
+
+
 
     // Diğer metotlar buraya eklenebilir
 
