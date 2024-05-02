@@ -11,30 +11,30 @@ public class BinarySearchTree {
     }
 
     // Kelimeyi ikili arama ağacına ekleme
-    public void insert(String word) {
-        root = insertRec(root, word);
+    public void insert(String word, String fileName) {
+        root = insertRec(root, word, fileName);
     }
 
-    // Yardımcı metot: Kelimeyi ikili arama ağacına ekleme
-    private Node insertRec(Node root, String word) {
+    private Node insertRec(Node root, String word, String fileName) {
         if (root == null) {
-            root = new Node(word);
+            root = new Node(word, fileName);
             return root;
         }
-
-        // Kelimeyi alfabetik sıraya göre ekle
         int compareResult = word.compareTo(root.word);
         if (compareResult < 0) {
-            root.left = insertRec(root.left, word);
+            root.left = insertRec(root.left, word, fileName);
         } else if (compareResult > 0) {
-            root.right = insertRec(root.right, word);
+            root.right = insertRec(root.right, word, fileName);
         } else {
-            // Eğer kelime zaten varsa, frekansı arttır
+            // If word already exists, increase the frequency and update file names
             root.frequency++;
+            if (!root.list.contains(fileName)) {
+                root.list.add(fileName);
+            }
         }
-
         return root;
     }
+
 
     // Belirli bir kelimenin frekansını döndürme
     public int search(String word) {
@@ -77,18 +77,24 @@ public class BinarySearchTree {
     // Belirli bir kelimenin pre-order dolaşımı
     public String preOrderTraversal() {
         StringBuilder result = new StringBuilder();
-        preOrderTraversalRec(root, result);
+        preOrderTraversalRec(root, result);  // Pass the StringBuilder to each recursive call
         return result.toString();
     }
 
-    // Yardımcı metot: Belirli bir kelimenin pre-order dolaşımı
-    private void preOrderTraversalRec(Node root, StringBuilder result) {
-        if (root != null) {
-            result.append(root.word).append(": ").append(root.frequency).append("\n");
-            preOrderTraversalRec(root.left, result);
-            preOrderTraversalRec(root.right, result);
+    // Helper method: Pre-order traversal of the tree
+    private void preOrderTraversalRec(Node node, StringBuilder result) {
+        if (node != null) {
+            // Append the current node's word and frequency to the result
+            result.append(node.word).append(": ").append(node.frequency).append("\n");
+
+            // Recursively process the left subtree
+            preOrderTraversalRec(node.left, result);
+
+            // Recursively process the right subtree
+            preOrderTraversalRec(node.right, result);
         }
     }
+
 
     // Belirli bir kelimenin in-order dolaşımı
     public String inOrderTraversal() {
@@ -105,6 +111,18 @@ public class BinarySearchTree {
             inOrderTraversalRec(root.right, result);
         }
     }
+    public void print() {
+        printRec(root);
+    }
+    private void printRec(Node root) {
+        if (root != null) {
+            printRec(root.left);
+            System.out.println(root.word + ": " + root.frequency);
+            printRec(root.right);
+        }
+    }
+
+
 
     // Diğer metotlar buraya eklenebilir
 

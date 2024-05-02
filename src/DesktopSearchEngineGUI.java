@@ -3,10 +3,14 @@ import javax.swing.border.EmptyBorder;
 import java.awt.*;
 import java.awt.event.*;
 import java.io.*;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Scanner;
 import java.util.Set;
+
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
@@ -27,13 +31,18 @@ public class DesktopSearchEngineGUI extends JFrame implements ActionListener {
         initializeGUI();
 
     }
+
     private void initializeGUI() {
         setTitle("Mini Desktop Search Engine");
-        setSize(500, 400);
+        setSize(600, 600);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLayout(new BorderLayout());
 
-        // Title Panel
+
+        tree = new BinarySearchTree();
+
+
+        // Başlık paneli
         JPanel titlePanel = new JPanel();
         titlePanel.setBackground(new Color(52, 152, 219));
         titlePanel.setBorder(new EmptyBorder(10, 10, 10, 10));
@@ -43,7 +52,7 @@ public class DesktopSearchEngineGUI extends JFrame implements ActionListener {
         titlePanel.add(titleLabel);
         add(titlePanel, BorderLayout.NORTH);
 
-        // Search Panel
+        // Arama paneli
         JPanel searchPanel = new JPanel();
         searchPanel.setLayout(new FlowLayout());
         searchPanel.setBorder(new EmptyBorder(20, 20, 20, 20));
@@ -59,7 +68,7 @@ public class DesktopSearchEngineGUI extends JFrame implements ActionListener {
         searchPanel.add(searchButton);
         add(searchPanel, BorderLayout.CENTER);
 
-        // Result Panel
+        // Sonuç paneli
         JPanel resultPanel = new JPanel();
         resultPanel.setBorder(new EmptyBorder(10, 20, 20, 20));
         resultArea = new JTextArea();
@@ -75,70 +84,233 @@ public class DesktopSearchEngineGUI extends JFrame implements ActionListener {
         scrollPane.setPreferredSize(new Dimension(450, 200));
         resultPanel.add(scrollPane);
         add(resultPanel, BorderLayout.SOUTH);
+        ignoreCodes();
+
+
+        // Ignore paneli
+
+
+        // Silme butonunu ekle
+        addClearButton();
+
+        // Print butonunu ekle
+       // addPrintButton();
+
+        // PreOrder butonunu ekle
+        preOrderButton();
+
+        // InOrder butonunu ekle
+        inOrderButton();
+
+        // PostOrder butonunu ekle
+        postOrderButton();
+        // Kelime arama butonunu ekle
+        SearchWordButton();
+
+
 
         setVisible(true);
     }
-    private static final Set<String> unwantedWords = new HashSet<>(Arrays.asList(
-            "a", "ain't", "am", "an", "and", "are", "aren't", "as", "at", "be", "been", "by",
-            "can", "cannot", "cant", "can't", "co", "co.", "com", "could", "couldn't", "did",
-            "didn't", "do", "does", "doesn't", "don't", "eg", "eg", "else", "et", "etc", "ex",
-            "for", "from", "going", "got", "had", "hadn't", "has", "hasn't", "have", "haven't",
-            "he", "he'd", "he'll", "her", "hers", "he's", "hi", "him", "his", "how", "i", "i'd",
-            "ie", "if", "i'll", "i'm", "in", "inc", "instead", "into", "is", "isn't", "it", "it'd",
-            "it'll", "its", "it's", "i've", "let", "let's", "ltd", "may", "mayn't", "me", "might",
-            "mightn't", "mine", "mr", "mrs", "ms", "must", "mustn't", "my", "nd", "needn't", "no",
-            "non", "none", "nor", "not", "of", "off", "oh", "ok", "okay", "on", "one's", "onto",
-            "or", "ought", "oughtn't", "our", "ours", "out", "over", "per", "que", "qv", "rd", "re",
-            "shall", "shan't", "she", "she'd", "she'll", "she's", "should", "shouldn't", "so", "sub",
-            "such", "sup", "th", "than", "that", "that'll", "thats", "that's", "that've", "the",
-            "their", "theirs", "them", "then", "thence", "there", "there'd", "there'll", "there're",
-            "theres", "there's", "there've", "these", "they", "they'd", "they'll", "they're", "they've",
-            "thing", "things", "this", "those", "thus", "to", "too", "un", "up", "us", "via", "viz",
-            "vs", "was", "wasn't", "we", "we'd", "we'll", "were", "we're", "weren't", "we've", "what'll",
-            "what's", "what've", "where's", "who'd", "who'll", "who's", "will", "with", "won't", "would",
-            "wouldn't", "yet", "you", "you'd", "you'll", "your", "you're", "yours", "you've", "1", "2",
-            "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13", "14", "15", "16", "17", "18", "19", "20",":",";"
-    ));
+    private void ignoreCodes(){
+        JOptionPane.showMessageDialog(null, "İstenmeyen kelimeleri belirlemek için bir dosya seçin.");
+        JFileChooser fileChooser = new JFileChooser();
+        fileChooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
 
+        fileChooser.setMultiSelectionEnabled(false);
+        int result = fileChooser.showOpenDialog(this);
+        if (result == JFileChooser.APPROVE_OPTION) {
+            // seçilen dosya okunacak
+            String filePath = fileChooser.getSelectedFile().getAbsolutePath();
+            // dosya içeriği okunacak
+            readIgnoreListFromTextFile(filePath);
+            JOptionPane.showMessageDialog(null, "İstenmeyen kelimeler başarıyla yüklendi.");
+            list.print();
+        }else {
+            JOptionPane.showMessageDialog(null, "İstenmeyen kelimeler yüklenemedi.");
+        }
+    }
+
+
+    private void preOrderButton() {
+        JButton preOrderButton = new JButton("PreOrder");
+        preOrderButton.setFont(new Font("Arial", Font.PLAIN, 16));
+        preOrderButton.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                // PreOrder print
+                resultArea.setText("PreOrder print\n");
+                String preOrder = tree.preOrderTraversal();
+                resultArea.append(preOrder);
+            }
+        });
+        // PreOrder butonunu arama paneline ekle
+        JPanel searchPanel = (JPanel) getContentPane().getComponent(1); // Arama panelini al
+        searchPanel.add(preOrderButton); // PreOrder butonunu arama paneline ekle
+    }
+
+    private void inOrderButton() {
+        JButton inOrderButton = new JButton("InOrder");
+        inOrderButton.setFont(new Font("Arial", Font.PLAIN, 16));
+        inOrderButton.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                // InOrder print
+                resultArea.setText("InOrder print\n");
+                String inOrder = tree.inOrderTraversal();
+                resultArea.append(inOrder);
+            }
+        });
+        // InOrder butonunu arama paneline ekle
+        JPanel searchPanel = (JPanel) getContentPane().getComponent(1); // Arama panelini al
+        searchPanel.add(inOrderButton); // InOrder butonunu arama paneline ekle
+    }
+
+    private void postOrderButton() {
+        JButton postOrderButton = new JButton("PostOrder");
+        postOrderButton.setFont(new Font("Arial", Font.PLAIN, 16));
+        postOrderButton.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                // PostOrder print
+                resultArea.setText("PostOrder print\n");
+                String postOrder = tree.postOrderTraversal();
+                resultArea.append(postOrder);
+            }
+        });
+        // PostOrder butonunu arama paneline ekle
+        JPanel searchPanel = (JPanel) getContentPane().getComponent(1); // Arama panelini al
+        searchPanel.add(postOrderButton); // PostOrder butonunu arama paneline ekle
+    }
+
+    SingleLinkedList list = new SingleLinkedList();
 
 
     public void actionPerformed(ActionEvent e) {
-        tree = new BinarySearchTree();
         if (e.getSource() == searchButton) {
-            // butona tıklandıgınd dosya seçme penceresi açılacak
+            // Open a file chooser dialog to select a directory
             JFileChooser fileChooser = new JFileChooser();
-            fileChooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
-            fileChooser.setMultiSelectionEnabled(false);
+            fileChooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);  // Allow only directories to be selected
+            fileChooser.setMultiSelectionEnabled(false);  // Disable multiple selection
             int result = fileChooser.showOpenDialog(this);
+
             if (result == JFileChooser.APPROVE_OPTION) {
-                // seçilen dosya okunacak
-                String filePath = fileChooser.getSelectedFile().getAbsolutePath();
-                // dosya içeriği okunacak
-                readFileContent(filePath);
+                // Get the selected directory path
+                String directoryPath = fileChooser.getSelectedFile().getAbsolutePath();
 
+                // Read and process all HTML files in the selected directory
+                readDirectoryContent(directoryPath);
 
-                // dosya içeriği aranacak
-                String searchText = searchField.getText();
-                search(searchText);
+                // Optional: Search within the read content (if you have such functionality ready and needed)
+                // String searchText = searchField.getText();
+                // search(searchText);
 
-                // sonuçlar ekrana yazdırılacak
-                String inorder = tree.inOrderTraversal();
-                String postorder = tree.postOrderTraversal();
-                String preorder = tree.preOrderTraversal();
-                resultArea.setText("Arama sonuçları İnorder :\n" + inorder + "\n\n");
-                resultArea.append("Arama sonuçları Postorder :\n" + postorder + "\n\n");
-                resultArea.append("Arama sonuçları Preorder :\n" + preorder + "\n\n");
+                // Assuming `tree.print()` prints to a console or similar. For GUI, you might want to update this
+                // Example: resultArea.setText("Contents of the tree:\n" + tree.toString());
+                // You need to implement the tree's toString method or similar to make this work.
+                resultArea.setText("Tree başarılı bir şekilde oluşturuldu.\n\n");
+                tree.print();  // Ensure this method's output is appropriate for your context (console or GUI).
             }
         }
     }
 
-    public void readFileContent(String filePath) {
-        File file = new File(filePath);
-        boolean isTextContent = false;
 
-        try (Scanner scanner = new Scanner(file)) {
-            while (scanner.hasNextLine()) {
-                String line = scanner.nextLine().trim();
+    private void addClearButton() {
+        JButton clearButton = new JButton("Temizle");
+        clearButton.setFont(new Font("Arial", Font.PLAIN, 16));
+        clearButton.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                // TextArea'yı temizle
+                resultArea.setText("");
+            }
+        });
+        // Silme butonunu arama paneline ekle
+        JPanel searchPanel = (JPanel) getContentPane().getComponent(1); // Arama panelini al
+        searchPanel.add(clearButton); // Silme butonunu arama paneline ekle
+    }
+    private void SearchWordButton() {
+        JButton searchWordButton = new JButton("Search Word");
+        searchWordButton.setFont(new Font("Arial", Font.PLAIN, 16));
+        searchWordButton.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                // Kelime arama
+                String word = searchField.getText();
+                SearchWholeTree(word);
+            }
+        });
+        // Kelime arama butonunu arama paneline ekle
+        JPanel searchPanel = (JPanel) getContentPane().getComponent(1); // Arama panelini al
+        searchPanel.add(searchWordButton); // Kelime arama butonunu arama paneline ekle
+    }
+
+
+   /* private void addPrintButton() {
+        JButton printButton = new JButton("Print Tree");
+        printButton.setFont(new Font("Arial", Font.PLAIN, 16));
+        printButton.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                // Tree print
+                System.out.println("Tree print");
+                tree.print();
+            }
+        });
+        // Print butonunu arama paneline ekle
+        JPanel searchPanel = (JPanel) getContentPane().getComponent(1); // Arama panelini al
+        searchPanel.add(printButton); // Print butonunu arama paneline ekle
+    }
+*/
+
+
+    private void SearchWholeTree(String word) {
+        searchAndAppend(word);
+    }
+
+
+    public void readIgnoreListFromTextFile(String filePath) {
+        try {
+            BufferedReader reader = new BufferedReader(new FileReader(filePath));
+            String line;
+            while ((line = reader.readLine()) != null) {
+                list.add(line);
+            }
+            reader.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public void readDirectoryContent(String directoryPath) {
+        Path dirPath = Paths.get(directoryPath);
+
+
+        // Check if the path is a directory
+        if (Files.isDirectory(dirPath)) {
+            try {
+
+                // Use Files.walk to access all files in the directory and its subdirectories
+
+                Files.walk(dirPath).forEach(filePath -> {
+                    if (Files.isRegularFile(filePath)) {  // Check if it is a file and not a directory
+
+
+                        readFileContent(filePath.toString());  // Process each file
+                    }
+                });
+            } catch (IOException e) {
+                System.err.println("Error reading the directory: " + e.getMessage());
+            }
+        } else {
+            System.err.println("The specified path is not a directory.");
+        }
+    }
+
+    private void readFileContent(String filePath) {
+        int count = 0;
+        Path path = Paths.get(filePath);
+        boolean isTextContent = false;
+        String justFileName = path.getFileName().toString();
+
+        try (BufferedReader reader = new BufferedReader(new FileReader(filePath))) {
+
+            String line;
+            while ((line = reader.readLine()) != null) {
+                line = line.trim();
 
                 // Check if entering the <TEXT> tag
                 if (line.equalsIgnoreCase("<TEXT>")) {
@@ -157,31 +329,28 @@ public class DesktopSearchEngineGUI extends JFrame implements ActionListener {
                     // Further process the line to extract words
                     String[] words = line.toLowerCase().replaceAll("[^a-z\\s]", "").split("\\s+");
                     for (String word : words) {
-                        if (!word.isEmpty() && !unwantedWords.contains(word)) {
-                            tree.insert(word);
+                        if (!word.isEmpty() && !list.contains(word)) {
+                            tree.insert(word, justFileName);  // Store just the file name instead of the full path
                         }
                     }
                 }
             }
-        } catch (FileNotFoundException e) {
-            System.err.println("File not found: " + e.getMessage());
+        } catch (IOException e) {
+            System.err.println("Error reading the file: " + e.getMessage());
         }
     }
 
 
-
-
-    public void BinarySearchTree(String word) {
-        tree.insert(word);
+    public void BinarySearchTree(String word, String fileName) {
+        tree.insert(word, fileName);
     }
 
-    public void search(String word) {
+    public void searchAndAppend(String word) {
         int result = tree.search(word);
         resultArea.append("Arama sonuçları:\n" + word + " kelimesi " + result + " kez bulundu.\n");
     }
 
     public static void main(String[] args) {
-
-        SwingUtilities.invokeLater(DesktopSearchEngineGUI::new);
+        SwingUtilities.invokeLater(() -> new DesktopSearchEngineGUI());
     }
 }
