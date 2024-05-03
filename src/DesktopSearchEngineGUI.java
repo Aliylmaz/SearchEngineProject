@@ -60,7 +60,7 @@ public class DesktopSearchEngineGUI extends JFrame implements ActionListener {
         searchLabel.setFont(new Font("Arial", Font.PLAIN, 16));
         searchField = new JTextField(20);
         searchField.setFont(new Font("Arial", Font.PLAIN, 16));
-        searchButton = new JButton("Ara");
+        searchButton = new JButton("Dosya Yükle");
         searchButton.setFont(new Font("Arial", Font.PLAIN, 16));
         searchButton.addActionListener(this);
         searchPanel.add(searchLabel);
@@ -94,7 +94,7 @@ public class DesktopSearchEngineGUI extends JFrame implements ActionListener {
         addClearButton();
 
         // Print butonunu ekle
-       // addPrintButton();
+        // addPrintButton();
 
         // PreOrder butonunu ekle
         preOrderButton();
@@ -108,10 +108,10 @@ public class DesktopSearchEngineGUI extends JFrame implements ActionListener {
         SearchWordButton();
 
 
-
         setVisible(true);
     }
-    private void ignoreCodes(){
+
+    private void ignoreCodes() {
         JOptionPane.showMessageDialog(null, "İstenmeyen kelimeleri belirlemek için bir dosya seçin.");
         JFileChooser fileChooser = new JFileChooser();
         fileChooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
@@ -125,7 +125,7 @@ public class DesktopSearchEngineGUI extends JFrame implements ActionListener {
             readIgnoreListFromTextFile(filePath);
             JOptionPane.showMessageDialog(null, "İstenmeyen kelimeler başarıyla yüklendi.");
             list.print();
-        }else {
+        } else {
             JOptionPane.showMessageDialog(null, "İstenmeyen kelimeler yüklenemedi.");
         }
     }
@@ -184,22 +184,22 @@ public class DesktopSearchEngineGUI extends JFrame implements ActionListener {
 
     public void actionPerformed(ActionEvent e) {
         if (e.getSource() == searchButton) {
-            // Open a file chooser dialog to select a directory
+            // Open a file chooser dialog to select multiple files
             JFileChooser fileChooser = new JFileChooser();
-            fileChooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);  // Allow only directories to be selected
-            fileChooser.setMultiSelectionEnabled(false);  // Disable multiple selection
+            fileChooser.setFileSelectionMode(JFileChooser.FILES_ONLY);  // Allow only files to be selected
+            fileChooser.setMultiSelectionEnabled(true);  // Enable multiple file selection
             int result = fileChooser.showOpenDialog(this);
 
             if (result == JFileChooser.APPROVE_OPTION) {
-                // Get the selected directory path
-                String directoryPath = fileChooser.getSelectedFile().getAbsolutePath();
+                // Get the selected files
+                File[] selectedFiles = fileChooser.getSelectedFiles();
 
-                // Read and process all HTML files in the selected directory
-                readDirectoryContent(directoryPath);
+                // Process each selected file
+                for (File file : selectedFiles) {
+                    // Read and process HTML file
+                    readFileContent(file.getAbsolutePath());
+                }
 
-                // Optional: Search within the read content (if you have such functionality ready and needed)
-                // String searchText = searchField.getText();
-                // search(searchText);
 
                 // Assuming `tree.print()` prints to a console or similar. For GUI, you might want to update this
                 // Example: resultArea.setText("Contents of the tree:\n" + tree.toString());
@@ -224,8 +224,9 @@ public class DesktopSearchEngineGUI extends JFrame implements ActionListener {
         JPanel searchPanel = (JPanel) getContentPane().getComponent(1); // Arama panelini al
         searchPanel.add(clearButton); // Silme butonunu arama paneline ekle
     }
+
     private void SearchWordButton() {
-        JButton searchWordButton = new JButton("Search Word");
+        JButton searchWordButton = new JButton("Kelime Ara");
         searchWordButton.setFont(new Font("Arial", Font.PLAIN, 16));
         searchWordButton.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
@@ -275,30 +276,6 @@ public class DesktopSearchEngineGUI extends JFrame implements ActionListener {
         }
     }
 
-    public void readDirectoryContent(String directoryPath) {
-        Path dirPath = Paths.get(directoryPath);
-
-
-        // Check if the path is a directory
-        if (Files.isDirectory(dirPath)) {
-            try {
-
-                // Use Files.walk to access all files in the directory and its subdirectories
-
-                Files.walk(dirPath).forEach(filePath -> {
-                    if (Files.isRegularFile(filePath)) {  // Check if it is a file and not a directory
-
-
-                        readFileContent(filePath.toString());  // Process each file
-                    }
-                });
-            } catch (IOException e) {
-                System.err.println("Error reading the directory: " + e.getMessage());
-            }
-        } else {
-            System.err.println("The specified path is not a directory.");
-        }
-    }
 
     private void readFileContent(String filePath) {
         int count = 0;
@@ -307,19 +284,18 @@ public class DesktopSearchEngineGUI extends JFrame implements ActionListener {
         String justFileName = path.getFileName().toString();
 
         try (BufferedReader reader = new BufferedReader(new FileReader(filePath))) {
-
             String line;
             while ((line = reader.readLine()) != null) {
                 line = line.trim();
 
                 // Check if entering the <TEXT> tag
-                if (line.equalsIgnoreCase("<TEXT>")) {
+                if (line.startsWith("<") && line.endsWith(">")) {
                     isTextContent = true;
                     continue;
                 }
 
                 // Check if exiting the <TEXT> tag
-                if (line.equalsIgnoreCase("</TEXT>")) {
+                if (line.startsWith("</") && line.endsWith(">")) {
                     isTextContent = false;
                     continue;
                 }
