@@ -17,44 +17,41 @@ public class BinarySearchTree {
 
     private Node insertRec(Node root, String word, String fileName) {
         if (root == null) {
-            root = new Node(word, fileName);
-            return root;
+            return new Node(word, fileName);
         }
+
         int compareResult = word.compareTo(root.word);
         if (compareResult < 0) {
             root.left = insertRec(root.left, word, fileName);
         } else if (compareResult > 0) {
             root.right = insertRec(root.right, word, fileName);
         } else {
-            // If word already exists, increase the frequency and update file names
-            root.frequency++;
-            if (!root.list.contains(fileName)) {
-                root.list.add(fileName);
-            }
+            // If word already exists, update the file name list and frequency
+            root.list.add(fileName);
+            root.list.updateFrequency(word);
         }
         return root;
     }
 
 
+
     // Belirli bir kelimenin frekansını döndürme
-    public int search(String word) {
+    public SingleLinkedList search(String word) {
         return searchRec(root, word);
     }
 
     // Yardımcı metot: Belirli bir kelimenin frekansını döndürme
-    private int searchRec(Node root, String word) {
+    private SingleLinkedList searchRec(Node root, String word) {
         if (root == null) {
-            return 0;
+            return null;
         }
-
-        // Kelimeyi alfabetik sıraya göre ara
         int compareResult = word.compareTo(root.word);
         if (compareResult < 0) {
             return searchRec(root.left, word);
         } else if (compareResult > 0) {
             return searchRec(root.right, word);
         } else {
-            return root.frequency;
+            return root.list;
         }
     }
 
@@ -70,7 +67,7 @@ public class BinarySearchTree {
         if (root != null) {
             postOrderTraversalRec(root.left, result);
             postOrderTraversalRec(root.right, result);
-            result.append(root.word).append(": ").append(root.frequency).append("\n");
+            result.append(root.word).append(": ").append(root.list.getAllFrequency()).append("\n");
         }
     }
 
@@ -85,7 +82,7 @@ public class BinarySearchTree {
     private void preOrderTraversalRec(Node node, StringBuilder result) {
         if (node != null) {
             // Append the current node's word and frequency to the result
-            result.append(node.word).append(": ").append(node.frequency).append("\n");
+            result.append(node.word).append(": ").append(node.list.getAllFrequency()).append("\n");
 
             // Recursively process the left subtree
             preOrderTraversalRec(node.left, result);
@@ -107,7 +104,7 @@ public class BinarySearchTree {
     private void inOrderTraversalRec(Node root, StringBuilder result) {
         if (root != null) {
             inOrderTraversalRec(root.left, result);
-            result.append(root.word).append(": ").append(root.frequency).append("\n");
+            result.append(root.word).append(": ").append(root.list.getAllFrequency()).append("\n");
             inOrderTraversalRec(root.right, result);
         }
     }
@@ -117,7 +114,7 @@ public class BinarySearchTree {
     private void printRec(Node root) {
         if (root != null) {
             printRec(root.left);
-            System.out.println(root.word + ": " + root.frequency);
+            System.out.println(root.word + ": " + root.list.getAllFrequency());
             printRec(root.right);
         }
     }

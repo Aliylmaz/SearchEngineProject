@@ -58,5 +58,29 @@ public class SingleLinkedList {
             temp = temp.next;
         }
     }
+    public void updateFrequency(String word) {
+        NodeForLinkedList temp = head;
+        while (temp != null) {
+            if (temp.word.equals(word)) {
+                temp.frequency++;
+                return;
+            }
+            temp = temp.next;
+        }
+    }
+    public int getSize() {
+        return size;
+    }
+    public int getAllFrequency() {
+        int sum = 0;
+        NodeForLinkedList temp = head;
+        while (temp != null) {
+            sum += temp.frequency;
+            temp = temp.next;
+        }
+        return sum;
+    }
+
+
 
 }

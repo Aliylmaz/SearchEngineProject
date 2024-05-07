@@ -11,10 +11,6 @@ import java.util.HashSet;
 import java.util.Scanner;
 import java.util.Set;
 
-import org.jsoup.Jsoup;
-import org.jsoup.nodes.Document;
-import org.jsoup.nodes.Element;
-import org.jsoup.select.Elements;
 
 import java.io.IOException;
 
@@ -124,7 +120,6 @@ public class DesktopSearchEngineGUI extends JFrame implements ActionListener {
             // dosya içeriği okunacak
             readIgnoreListFromTextFile(filePath);
             JOptionPane.showMessageDialog(null, "İstenmeyen kelimeler başarıyla yüklendi.");
-            list.print();
         } else {
             JOptionPane.showMessageDialog(null, "İstenmeyen kelimeler yüklenemedi.");
         }
@@ -322,8 +317,14 @@ public class DesktopSearchEngineGUI extends JFrame implements ActionListener {
     }
 
     public void searchAndAppend(String word) {
-        int result = tree.search(word);
-        resultArea.append("Arama sonuçları:\n" + word + " kelimesi " + result + " kez bulundu.\n");
+        SingleLinkedList list = tree.search(word);
+        if (list == null) {
+            resultArea.append("Kelime bulunamadı.\n");
+        } else {
+            resultArea.append("Kelime: " + word + "\n");
+            resultArea.append("Şu dosyalarda bu kadar geçiyor: " + list.toString() + "\n");
+
+        }
     }
 
     public static void main(String[] args) {
