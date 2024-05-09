@@ -213,6 +213,8 @@ public class DesktopSearchEngineGUI extends JFrame implements ActionListener {
             public void actionPerformed(ActionEvent e) {
                 // TextArea'yı temizle
                 resultArea.setText("");
+                // Arama alanını temizle
+                searchField.setText("");
             }
         });
         // Silme butonunu arama paneline ekle
